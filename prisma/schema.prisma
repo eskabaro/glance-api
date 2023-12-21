@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id String @id @default(uuid())
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updateAdt DateTime @updatedAt @map("updated_at")
+
+  mainImage       String   @map("main_image")
+  images          String[]
+  title           String
+  price           String
+  sale            String?
+  color           String?
+  inStock         String
+  stars           Int
+  category        String
+  characteristics Json
+
+  reviews Review[]
+}
+
+model Review {
+  id String @id @default(uuid())
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updateAdt DateTime @updatedAt @map("updated_at")
+
+  author String
+  strar  Int
+  pros   String
+  cons   String
+  review String?
+
+  Product   Product? @relation(fields: [productId], references: [id])
+  productId String?
+}
+
+model Category {
+  id String @id @default(uuid())
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updateAdt DateTime @updatedAt @map("updated_at")
+
+  category String @unique()
+  image    String
+}
