@@ -1,8 +1,9 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma.service';
 import { CreateDto } from './dto/create.dto';
+import { CreateEventDto } from './dto/create.event.dto';
 
 @Injectable()
 export class ProductService {
@@ -16,9 +17,9 @@ export class ProductService {
    ) { }
 
    async getAll(category?: string) {
-      const where = category ? { category: category } : {}
+      const where = category ? { categorySlug: category } : {}
 
-      const products = await this.prisma.product.findMany({ where })
+      const products = await this.prisma.product.findMany({ where, include: { ivents: true } })
 
       if (!products) throw new HttpException("Произошла ошибка при получении продуктов", HttpStatus.INTERNAL_SERVER_ERROR)
 
@@ -28,7 +29,7 @@ export class ProductService {
    async getById(id: string) {
       const product = await this.prisma.product.findUnique({
          where: { id: id },
-         include: { reviews: true }
+         include: { reviews: true, ivents: true }
       })
 
       if (!product) throw new NotFoundException("Товар не найден")
@@ -72,13 +73,33 @@ export class ProductService {
             inStock: dto.inStock,
             stars: 0,
             category: dto.category,
+            categorySlug: dto.slug,
             characteristics: dto.characteristics,
-            reviews: { create: [] }
+            reviews: { create: [] },
+            ivents: { create: [] }
          },
-         include: { reviews: true }
+         include: {
+            reviews: true,
+            ivents: true
+         }
       })
 
       return product
+   }
+
+   async createProductIvent(dto: CreateEventDto) {
+      try {
+         const event = await this.prisma.productIvetn.create({
+            data: {
+               productId: dto.id,
+               type: dto.type
+            },
+         })
+
+         return event
+      } catch (error) {
+         throw new BadRequestException("Не удалось создать ивент для товара")
+      }
    }
 
    private getUrlFromBucket(fileName: string) {

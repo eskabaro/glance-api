@@ -22,5 +22,8 @@ export class CreateDto {
    category: string
 
    @IsString()
+   slug: string
+
+   @IsString()
    characteristics: string
 }

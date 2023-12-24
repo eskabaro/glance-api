@@ -25,9 +25,20 @@ model Product {
   inStock         String
   stars           Int
   category        String
+  categorySlug    String   @map("category_slug")
   characteristics Json
 
+  ivents  ProductIvetn[]
   reviews Review[]
+}
+
+model ProductIvetn {
+  id String @id @default(uuid())
+
+  type String
+
+  Product   Product? @relation(fields: [productId], references: [id])
+  productId String?
 }
 
 model Review {
@@ -54,4 +65,5 @@ model Category {
 
   category String @unique()
   image    String
+  slug     String @unique()
 }
